@@ -12,8 +12,10 @@ from six.moves.urllib.request import getproxies  # pylint: disable=E0401
 from six.moves import input
 
 import getpass
+import os
 import requests
 import six
+import traceback
 import dateutil
 
 #Application-specific imports
@@ -106,7 +108,10 @@ class Robinhood:
             'password': password,
             'username': self.username,
             'grant_type': 'password',
-            'client_id': self.client_id
+            'client_id': self.client_id,
+            'device_token': os.environ['ROBINHOOD_DEVICE_TOKEN'],
+            'expires_in': 86400,
+            'scope': 'internal'
         }
 
         if mfa_code:
@@ -116,6 +121,7 @@ class Robinhood:
             res.raise_for_status()
             data = res.json()
         except requests.exceptions.HTTPError:
+            traceback.print_exc()
             raise RH_exception.LoginFailed()
 
         if 'mfa_required' in data.keys():           # pragma: no cover
